@@ -21,6 +21,45 @@ class BrandAPIView(APIView):
                 return Response(serializer.data)
             except Exception as e:
                 return Response({"message": "Brand Not Found !!!"}, status=status.HTTP_404_NOT_FOUND)
+
+    
+    def post(self, request: Request, pk: Optional[int]=None):
+        if pk:
+            return Response({"message": "Method POST Not Allowed!!!"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        else:
+            serializer = BrandSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            brand = serializer.save()
+            return Response(BrandSerializer(brand).data, status=status.HTTP_201_CREATED)
+        
+    
+    def put(self, request: Request, pk: Optional[int]=None):
+        if not pk:
+            return Response({"message": f"Method {request.method} Not Allowed!!!"})
+        else:
+            try:
+                brand = Brand.objects.get(pk=pk)
+            except Exception as e:
+                return Response({"message": "Brand Not Found!!!"}, status=status.HTTP_404_NOT_FOUND)
+            serializer = BrandSerializer(instance=brand, data=request.data, partial=True if request.method == 'PATCH' else False)
+            serializer.is_valid()
+            brand = serializer.save()
+            return Response(BrandSerializer(brand).data)
+    
+    def patch(self, request: Request, pk: Optional[int]=None):
+        return self.put(request, pk)
+    
+
+    def delete(self, request: Request, pk: Optional[int]=None):
+        if not pk:
+            return Response({"message": "Brand Not Found!!!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            try:
+                brand = Brand.objects.get(pk=pk)
+            except Exception as e:
+                return Response({"message": "Brand Not Found!!!"}, status=status.HTTP_404_NOT_FOUND)
+            brand.delete()
+            return Response({"message": "Brand Successfully Deleted!!!"}, status=status.HTTP_204_NO_CONTENT)
             
 
 
